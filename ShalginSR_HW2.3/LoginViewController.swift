@@ -9,46 +9,15 @@ import UIKit
 
 class LoginViewController: UIViewController {
     
-    // IB Outlets
+    // MARK: - IB Outlets
     @IBOutlet var userNameTextField: UITextField!
     @IBOutlet var userPasswordTextField: UITextField!
     
-    // Private constants
+    // MARK: - Private Properties
     private let userName = "User"
     private let userPassword = "Password"
     
-    // Send userName from LoginViewController to WelcomeViewController
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        guard let welcomeViewController = segue.destination as? WelcomeViewController else { return }
-        welcomeViewController.userName = userNameTextField.text
-    }
-    
-    
-    @IBAction func logInButton() {
-        
-        //Check optional input userName and Password
-        guard let inputUserName = userNameTextField.text,
-              let inputUserPassword = userPasswordTextField.text else {
-                  showAlert(title: "Wrong!", message: "Please, enter correct name")
-                  return
-              }
-        
-        //Check correctly input userName and password
-        guard inputUserName == userName, inputUserPassword == userPassword else {
-            showAlert(
-                title: "Invalid login or password",
-                message: "Please, enter correct login and password")
-            userPasswordTextField.text = ""
-            return
-        }
-    }
-    
-    @IBAction func userForgotRegisterData(_ sender: UIButton) {
-        sender.tag == 0
-        ? showAlert(title: "Ooops! \u{1F628}", message: "Your name is \(userName)")
-        : showAlert(title: "Ooops! \u{1F628}", message: "Your password is \(userPassword)")
-    }
-    
+    // MARK: - Override Functions
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -61,28 +30,58 @@ class LoginViewController: UIViewController {
         userPasswordTextField.enablesReturnKeyAutomatically = true
     }
     
+    // MARK: - Navigation
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        guard let welcomeViewController = segue.destination as? WelcomeViewController else { return }
+        welcomeViewController.userName = userName
+    }
     
-    //Delete text in textfields when Log Out button pressed
+    // MARK: - IB Actions
+    @IBAction func logInButton() {
+        if userNameTextField.text != userName || userPasswordTextField.text != userPassword {
+            showAlert(
+                title: "Invalid login or password",
+                message: "Please, enter correct login and password",
+                textField: userPasswordTextField
+            )
+            return
+        }
+    }
+    
+    @IBAction func userForgotRegisterData(_ sender: UIButton) {
+        sender.tag == 0
+        ? showAlert(title: "Ooops! \u{1F628}", message: "Your name is \(userName)")
+        : showAlert(title: "Ooops! \u{1F628}", message: "Your password is \(userPassword)")
+    }
+    
     @IBAction func unwindSegue(segue: UIStoryboardSegue) {
         userNameTextField.text = ""
         userPasswordTextField.text = ""
     }
 }
 
+// MARK: - Private Methods
 extension LoginViewController {
-    private func showAlert(title: String, message: String) {
+    private func showAlert(title: String, message: String, textField: UITextField? = nil) {
         let alert = UIAlertController(title: title,
                                       message: message,
                                       preferredStyle: .alert)
         let okAction = UIAlertAction(title: "OK",
-                                     style: .default)
-        
+                                     style: .default) { _ in
+            textField?.text = ""
+        }
         alert.addAction(okAction)
         present(alert, animated: true)
     }
 }
 
+// MARK: - UITextFieldDelegate
 extension LoginViewController: UITextFieldDelegate {
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        super.touchesBegan(touches, with: event)
+        view.endEditing(true)
+    }
+    
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
         if textField == userNameTextField {
             userPasswordTextField.becomeFirstResponder()
@@ -93,9 +92,4 @@ extension LoginViewController: UITextFieldDelegate {
         return true
     }
     
-    //Hide the keybord when user touches the screen
-    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        super .touchesBegan(touches, with: event)
-        view.endEditing(true)
-    }
 }
